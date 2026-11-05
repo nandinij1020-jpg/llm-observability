@@ -1,0 +1,779 @@
+{
+  "uid": "llm-observability",
+  "title": "LLM Agent Observability",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "tags": [
+    "llm",
+    "bedrock",
+    "observability"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "custom",
+        "label": "Environment",
+        "query": "dev,staging,prod",
+        "current": {
+          "text": "dev",
+          "value": "dev"
+        },
+        "options": [
+          {
+            "text": "dev",
+            "value": "dev",
+            "selected": true
+          },
+          {
+            "text": "staging",
+            "value": "staging",
+            "selected": false
+          },
+          {
+            "text": "prod",
+            "value": "prod",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "agent",
+        "type": "query",
+        "label": "Agent",
+        "datasource": {
+          "type": "cloudwatch",
+          "uid": "cloudwatch"
+        },
+        "multi": true,
+        "includeAll": true,
+        "refresh": 2,
+        "query": {
+          "queryType": "dimensionValues",
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "Requests",
+          "dimensionKey": "AgentId",
+          "refId": "agent"
+        },
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Agent runs",
+      "type": "stat",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "Requests",
+          "dimensions": {
+            "AgentId": "ALL"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "runs"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Failed runs",
+      "type": "stat",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "Errors",
+          "dimensions": {
+            "AgentId": "ALL"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "errors"
+        }
+      ],
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "title": "LLM calls",
+      "type": "stat",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "LLMCalls",
+          "dimensions": {
+            "AgentId": "ALL"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "llm"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Tool calls",
+      "type": "stat",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "ToolCalls",
+          "dimensions": {
+            "AgentId": "ALL"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "tools"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Tokens",
+      "type": "stat",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "TotalTokens",
+          "dimensions": {
+            "AgentId": "ALL"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "tokens"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Cost",
+      "type": "stat",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "CostUSD",
+          "dimensions": {
+            "AgentId": "ALL"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "cost"
+        }
+      ],
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 7,
+      "title": "Cost per agent",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "CostUSD",
+          "dimensions": {
+            "AgentId": "$agent"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "${PROP('Dim.AgentId')} CostUSD"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 8,
+      "title": "Tokens per agent",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "InputTokens",
+          "dimensions": {
+            "AgentId": "$agent"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "${PROP('Dim.AgentId')} InputTokens"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "OutputTokens",
+          "dimensions": {
+            "AgentId": "$agent"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "b",
+          "hide": false,
+          "label": "${PROP('Dim.AgentId')} OutputTokens"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 9,
+      "title": "Agent run latency percentiles",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "AgentRunLatencyMs",
+          "dimensions": {
+            "AgentId": "$agent"
+          },
+          "matchExact": true,
+          "statistic": "p50",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "p50 ${PROP('Dim.AgentId')}"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "AgentRunLatencyMs",
+          "dimensions": {
+            "AgentId": "$agent"
+          },
+          "matchExact": true,
+          "statistic": "p90",
+          "period": "",
+          "id": "b",
+          "hide": false,
+          "label": "p90 ${PROP('Dim.AgentId')}"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "AgentRunLatencyMs",
+          "dimensions": {
+            "AgentId": "$agent"
+          },
+          "matchExact": true,
+          "statistic": "p99",
+          "period": "",
+          "id": "c",
+          "hide": false,
+          "label": "p99 ${PROP('Dim.AgentId')}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 10,
+      "title": "Error rate (all agents)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "Errors",
+          "dimensions": {
+            "AgentId": "ALL"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "a",
+          "hide": true,
+          "label": "${PROP('Dim.AgentId')} Errors"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "Requests",
+          "dimensions": {
+            "AgentId": "ALL"
+          },
+          "matchExact": true,
+          "statistic": "Sum",
+          "period": "",
+          "id": "b",
+          "hide": true,
+          "label": "${PROP('Dim.AgentId')} Requests"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "region": "default",
+          "expression": "IF(b > 0, 100 * a / b, 0)",
+          "id": "c",
+          "label": "error %"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 11,
+      "title": "LLM latency p90",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "LLMLatencyMs",
+          "dimensions": {
+            "AgentId": "$agent"
+          },
+          "matchExact": true,
+          "statistic": "p90",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "${PROP('Dim.AgentId')} LLMLatencyMs"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 12,
+      "title": "Canary health (1 = pipeline OK)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch"
+          },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "LLMObservability/$env",
+          "metricName": "CanarySuccess",
+          "dimensions": {},
+          "matchExact": true,
+          "statistic": "Minimum",
+          "period": "",
+          "id": "a",
+          "hide": false,
+          "label": "canary"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 20,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {}
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "start": "-PT3H",
+  "periodOverride": "inherit",
+  "widgets": [
+    {
+      "type": "text", "x": 0, "y": 0, "width": 24, "height": 2,
+      "properties": {
+        "markdown": "## LLM Agent Observability — ${namespace}\nTokens, cost, latency, errors and tool calls for every instrumented agent. Drill into individual traces in **OpenSearch Dashboards** (index pattern `llm-traces-*`) or **X-Ray** (annotation `llm_trace_id`)."
+      }
+    },
+    {
+      "type": "metric", "x": 0, "y": 2, "width": 24, "height": 4,
+      "properties": {
+        "title": "Totals for the selected time range (all agents)",
+        "view": "singleValue", "region": "${region}", "setPeriodToTimeRange": true, "stat": "Sum",
+        "metrics": [
+          ["${namespace}", "Requests", "AgentId", "ALL", {"label": "Agent runs"}],
+          ["${namespace}", "Errors", "AgentId", "ALL", {"label": "Failed runs"}],
+          ["${namespace}", "LLMCalls", "AgentId", "ALL", {"label": "LLM calls"}],
+          ["${namespace}", "ToolCalls", "AgentId", "ALL", {"label": "Tool calls"}],
+          ["${namespace}", "TotalTokens", "AgentId", "ALL", {"label": "Tokens"}],
+          ["${namespace}", "CostUSD", "AgentId", "ALL", {"label": "Cost (USD)"}]
+        ]
+      }
+    },
+    {
+      "type": "metric", "x": 0, "y": 6, "width": 12, "height": 6,
+      "properties": {
+        "title": "Cost per agent (USD / 5 min)", "view": "timeSeries", "stacked": true, "region": "${region}", "period": 300,
+        "metrics": [
+          [{"expression": "SEARCH('{${namespace},AgentId} MetricName=\"CostUSD\" NOT AgentId=\"ALL\"', 'Sum', 300)", "id": "cost", "label": ""}]
+        ]
+      }
+    },
+    {
+      "type": "metric", "x": 12, "y": 6, "width": 12, "height": 6,
+      "properties": {
+        "title": "Tokens per agent (input + output / 5 min)", "view": "timeSeries", "stacked": true, "region": "${region}", "period": 300,
+        "metrics": [
+          [{"expression": "SEARCH('{${namespace},AgentId} MetricName=\"TotalTokens\" NOT AgentId=\"ALL\"', 'Sum', 300)", "id": "tok", "label": ""}]
+        ]
+      }
+    },
+    {
+      "type": "metric", "x": 0, "y": 12, "width": 12, "height": 6,
+      "properties": {
+        "title": "Agent run latency (ms) with anomaly band", "view": "timeSeries", "region": "${region}", "period": 300,
+        "metrics": [
+          ["${namespace}", "AgentRunLatencyMs", "AgentId", "ALL", {"stat": "p90", "id": "p90", "label": "p90"}],
+          ["${namespace}", "AgentRunLatencyMs", "AgentId", "ALL", {"stat": "p50", "id": "p50", "label": "p50"}],
+          ["${namespace}", "AgentRunLatencyMs", "AgentId", "ALL", {"stat": "p99", "id": "p99", "label": "p99"}],
+          [{"expression": "ANOMALY_DETECTION_BAND(p90, 2)", "id": "band", "label": "p90 expected range"}]
+        ]
+      }
+    },
+    {
+      "type": "metric", "x": 12, "y": 12, "width": 12, "height": 6,
+      "properties": {
+        "title": "Error rate (%)", "view": "timeSeries", "region": "${region}", "period": 60,
+        "yAxis": {"left": {"min": 0, "max": 100}},
+        "metrics": [
+          [{"expression": "IF(req > 0, 100 * err / req, 0)", "id": "rate", "label": "Agent run error %"}],
+          [{"expression": "IF(llm > 0, 100 * llmerr / llm, 0)", "id": "llmrate", "label": "LLM call error %"}],
+          [{"expression": "IF(tool > 0, 100 * toolerr / tool, 0)", "id": "toolrate", "label": "Tool call error %"}],
+          ["${namespace}", "Errors", "AgentId", "ALL", {"stat": "Sum", "id": "err", "visible": false}],
+          ["${namespace}", "Requests", "AgentId", "ALL", {"stat": "Sum", "id": "req", "visible": false}],
+          ["${namespace}", "LLMErrors", "AgentId", "ALL", {"stat": "Sum", "id": "llmerr", "visible": false}],
+          ["${namespace}", "LLMCalls", "AgentId", "ALL", {"stat": "Sum", "id": "llm", "visible": false}],
+          ["${namespace}", "ToolErrors", "AgentId", "ALL", {"stat": "Sum", "id": "toolerr", "visible": false}],
+          ["${namespace}", "ToolCalls", "AgentId", "ALL", {"stat": "Sum", "id": "tool", "visible": false}]
+        ]
+      }
+    },
+    {
+      "type": "metric", "x": 0, "y": 18, "width": 12, "height": 6,
+      "properties": {
+        "title": "LLM call latency p90 per agent (ms)", "view": "timeSeries", "region": "${region}", "period": 300,
+        "metrics": [
+          [{"expression": "SEARCH('{${namespace},AgentId} MetricName=\"LLMLatencyMs\" NOT AgentId=\"ALL\"', 'p90', 300)", "id": "llmlat", "label": ""}]
+        ]
+      }
+    },
+    {
+      "type": "metric", "x": 12, "y": 18, "width": 12, "height": 6,
+      "properties": {
+        "title": "Requests per agent", "view": "timeSeries", "stacked": true, "region": "${region}", "period": 300,
+        "metrics": [
+          [{"expression": "SEARCH('{${namespace},AgentId} MetricName=\"Requests\" NOT AgentId=\"ALL\"', 'Sum', 300)", "id": "reqs", "label": ""}]
+        ]
+      }
+    },
+    {
+      "type": "metric", "x": 0, "y": 24, "width": 8, "height": 6,
+      "properties": {
+        "title": "Pipeline: canary success & end-to-end latency", "view": "timeSeries", "region": "${region}", "period": 300,
+        "metrics": [
+          ["${namespace}", "CanarySuccess", {"stat": "Minimum", "label": "Canary success (1 = healthy)"}],
+          ["${namespace}", "CanaryE2ELatencyMs", {"stat": "Average", "yAxis": "right", "label": "Canary E2E ms"}]
+        ]
+      }
+    },
+    {
+      "type": "metric", "x": 8, "y": 24, "width": 8, "height": 6,
+      "properties": {
+        "title": "Pipeline: processor lag & errors", "view": "timeSeries", "region": "${region}", "period": 60,
+        "metrics": [
+          ["AWS/Lambda", "IteratorAge", "FunctionName", "${processor_function}", {"stat": "Maximum", "label": "Kinesis iterator age (ms)"}],
+          ["AWS/Lambda", "Errors", "FunctionName", "${processor_function}", {"stat": "Sum", "yAxis": "right", "label": "Processor errors"}],
+          ["AWS/Lambda", "Errors", "FunctionName", "${canary_function}", {"stat": "Sum", "yAxis": "right", "label": "Canary errors"}]
+        ]
+      }
+    },
+    {
+      "type": "alarm", "x": 16, "y": 24, "width": 8, "height": 6,
+      "properties": {
+        "title": "Alarms",
+        "alarms": ${alarm_arns}
+      }
+    }
+  ]
+}

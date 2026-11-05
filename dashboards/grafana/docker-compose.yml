@@ -1,0 +1,20 @@
+# Optional: self-hosted Grafana (run locally or on an EC2 instance) with the
+# datasource and dashboard provisioned from this repo — dashboards-as-code.
+#
+#   export AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=us-east-1
+#   export LLM_OBS_ENV=dev
+#   docker compose up -d     -> http://localhost:3000  (admin / admin)
+services:
+  grafana:
+    image: grafana/grafana-oss:11.1.0
+    ports: ["3000:3000"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      LLM_OBS_ENV: ${LLM_OBS_ENV:-dev}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning
+      - ./dashboards:/var/lib/grafana/dashboards
