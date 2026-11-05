@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-sdk:
+    name: SDK & Lambda tests (mock Bedrock)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: pip install -r requirements-dev.txt && pip install -e sdk
+      - name: Lint
+        run: ruff check sdk lambdas scripts tests
+      - name: Unit tests (mock Bedrock endpoint + botocore Stubber)
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+        run: pytest -v --junitxml=test-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.python }}
+          path: test-results.xml
+
+  validate-infra:
+    name: Terraform & dashboards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+      - name: Stage Lambda code
+        run: NO_XRAY_SDK=1 bash scripts/build_lambdas.sh
+      - name: terraform fmt (style check — warns, does not block)
+        run: terraform -chdir=infra fmt -check -recursive -diff || echo "::warning::run 'terraform -chdir=infra fmt -recursive' and commit"
+      - name: terraform validate
+        run: |
+          terraform -chdir=infra init -backend=false
+          terraform -chdir=infra validate
+      - name: Dashboards are valid JSON
+        run: |
+          python3 -m json.tool dashboards/grafana/dashboards/llm-observability.json > /dev/null
+          python3 -m json.tool dashboards/opensearch/saved-objects.json > /dev/null
+          python3 scripts/render_cw_dashboard.py dev > /dev/null
